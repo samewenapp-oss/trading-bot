@@ -23,6 +23,7 @@ import pandas as pd
 from .broker import BrokerError
 from .config import Config
 from .notify import Notifier
+from .report import send_report, start_tracking
 from .strategy import target_weights
 
 log = logging.getLogger("bot")
@@ -131,12 +132,21 @@ def run_once(cfg: Config, client, notifier: Notifier, execute=False, force=False
     acct = client.account()
     equity, last_equity = float(acct["equity"]), float(acct["last_equity"])
     day_pnl = equity / last_equity - 1 if last_equity > 0 else 0.0
+    if execute:
+        start_tracking(state, client, today, equity)
+
+    def report():
+        if cfg.live.daily_report:
+            try:  # reporting must never break trading
+                send_report(client, cfg, notifier, state, today, equity, day_pnl, mode, log_dir)
+            except Exception as e:
+                log.warning("report failed: %s", e)
 
     if state.get("last_rebalance") == month and not force:
-        log.info(f"Already rebalanced for {month}. Equity ${equity:,.0f} ({day_pnl:+.2%} today).")
         state["last_check"] = today.strftime("%Y-%m-%d")
         if execute:
             _save_state(state_path, state)
+        report()
         return actions
     if acct.get("trading_blocked") or acct.get("account_blocked"):
         notifier.send("Account is blocked from trading. Stopping.")
@@ -213,8 +223,10 @@ def run_once(cfg: Config, client, notifier: Notifier, execute=False, force=False
             notifier.send("Some sells didn't fill. Skipping buys to avoid running short of cash.")
             break
 
-    if execute and all_filled:
-        state.update(last_rebalance=month, last_targets={**w.round(4).to_dict(), cfg.cash_symbol: round(cash_w, 4)})
+    if execute:
+        if all_filled:
+            state.update(last_rebalance=month,
+                         last_targets={**w.round(4).to_dict(), cfg.cash_symbol: round(cash_w, 4)})
         _save_state(state_path, state)
     lines = [f"[{mode}] {month} rebalance. Equity ${equity:,.0f} ({day_pnl:+.2%} today)",
              f"Targets: {target_txt}, {cfg.cash_symbol} {cash_w:.0%}"]
@@ -222,4 +234,8 @@ def run_once(cfg: Config, client, notifier: Notifier, execute=False, force=False
     if execute and not all_filled:
         lines.append("Not complete; will retry next run.")
     notifier.send("\n".join(lines))
+    if execute:
+        acct = client.account()
+        equity = float(acct["equity"])
+        report()
     return actions

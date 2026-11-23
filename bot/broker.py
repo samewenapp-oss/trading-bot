@@ -53,6 +53,10 @@ class AlpacaClient:
     def positions(self) -> dict:
         return {p["symbol"]: p for p in self._req("GET", f"{self.base_url}/v2/positions")}
 
+    def portfolio_history(self, period="1A", timeframe="1D"):
+        return self._req("GET", f"{self.base_url}/v2/account/portfolio/history",
+                         params={"period": period, "timeframe": timeframe})
+
     # --- orders ---
     def open_orders(self) -> list:
         return self._req("GET", f"{self.base_url}/v2/orders", params={"status": "open", "limit": 500})

@@ -105,7 +105,12 @@ class FakeClient:
         return {"equity": str(e), "last_equity": str(self.last_equity or e), "cash": str(self.cash)}
 
     def positions(self):
-        return {s: {"symbol": s, "qty": str(q), "current_price": str(self.px(s))} for s, q in self.pos.items()}
+        return {s: {"symbol": s, "qty": str(q), "current_price": str(self.px(s)),
+                    "market_value": str(q * self.px(s)), "unrealized_plpc": "0.01"} for s, q in self.pos.items()}
+
+    def portfolio_history(self):
+        idx = pd.bdate_range(end=self.ts[:10], periods=10)
+        return {"timestamp": [int(t.timestamp()) for t in idx], "equity": [10000 + 10 * i for i in range(10)]}
 
     def open_orders(self):
         return [o for o in self.orders.values() if o["status"] == "new"]
@@ -139,6 +144,9 @@ class SilentNotifier:
 
     def send(self, t):
         self.msgs.append(t)
+
+    def send_photo(self, path, caption=""):
+        self.msgs.append(f"PHOTO {path}")
 
 
 def test_dry_run_sends_nothing(tmp_path):
@@ -211,3 +219,20 @@ def test_ignores_positions_outside_universe(tmp_path):
     run_once(small_cfg(), c, SilentNotifier(), execute=True, base_dir=tmp_path)
     assert c.pos["TSLA"] == 5
     assert all(o["symbol"] != "TSLA" for o in c.submitted)
+
+
+def test_daily_status_report(tmp_path):
+    closes = trend_closes()
+    closes["SPY"] = 400.0
+    c = FakeClient(closes)
+    n = SilentNotifier()
+    cfg = small_cfg()
+    run_once(cfg, c, n, execute=True, base_dir=tmp_path)  # rebalance day
+    c.ts = "2026-02-06T10:00:00-05:00"  # a Friday later that month: no trades, report + chart
+    n.msgs.clear()
+    run_once(cfg, c, n, execute=True, base_dir=tmp_path)
+    status = next(m for m in n.msgs if "Equity $" in m)
+    assert "Since 2026-02-02" in status and "SPY +0.0%" in status
+    assert "AAA" in status and "Next rebalance: first trading day of Mar" in status
+    assert any(m.startswith("PHOTO") for m in n.msgs)
+    assert (tmp_path / "logs/equity.png").exists()

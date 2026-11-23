@@ -56,7 +56,48 @@ Backtests still overstate real results. Expect a bit less live.
 | Accidental real money | Dry run unless `--execute`; real money also needs `allow_live_trading = true` and a non-paper URL |
 | Other holdings | Never touched. But it sizes off total account equity, so **use a dedicated account** |
 
-## Setup
+## Easy setup: runs on GitHub, check it on your phone
+
+No computer or server needed. GitHub runs the bot every weekday for free, and Telegram sends the results to your phone. About 15 minutes, one time.
+
+**1. Alpaca paper account (5 min)**
+Sign up at alpaca.markets, switch to **Paper Trading**, and generate API keys. Keep the key and secret handy.
+
+**2. Telegram bot (5 min)**
+1. In Telegram, message **@BotFather**, send `/newbot`, and follow the prompts. It gives you a **bot token**.
+2. Send any message to your new bot.
+3. Open `https://api.telegram.org/bot<YOUR_TOKEN>/getUpdates` in a browser. Find `"chat":{"id":123456789`. That number is your **chat ID**.
+
+**3. Add secrets to GitHub (3 min)**
+In the repo: **Settings > Secrets and variables > Actions > New repository secret**. Add these four:
+
+| Name | Value |
+|---|---|
+| `ALPACA_API_KEY` | Alpaca key |
+| `ALPACA_SECRET_KEY` | Alpaca secret |
+| `TELEGRAM_BOT_TOKEN` | token from BotFather |
+| `TELEGRAM_CHAT_ID` | your chat ID |
+
+**4. Test it (2 min)**
+Repo **Actions** tab > **trading-bot** > **Run workflow** > mode `dry-run`. Within a couple of minutes, Telegram should show what it would buy. Nothing gets traded.
+
+That's it. From then on it runs every weekday at about 9:50am New York time (10:50 in summer).
+
+### What you get on your phone
+
+- **Every weekday:** a Telegram message with equity, today's change, your return vs SPY since you started, holdings with P&L, and the next rebalance date.
+- **Every Friday:** a chart of the bot vs SPY since you started.
+- **Rebalance days (first trading day of the month):** a list of every trade.
+- **Errors:** a Telegram message if anything fails (bad data, rejected orders).
+- **GitHub app:** each run's page shows the same status. You can run it by hand from there too.
+
+### Controls from your phone
+
+- **Pause the bot:** GitHub app > repo > Actions > trading-bot > ... > **Disable workflow**. Enable it again to resume.
+- **Run it now:** Actions > trading-bot > **Run workflow**.
+- **Trade history:** `logs/trades.csv` in the repo (the bot saves it after every run).
+
+## Running on your own computer instead (optional)
 
 ```bash
 cd trading-bot
@@ -91,7 +132,7 @@ To check how fragile it is, set `slippage_bps = 20` or `trend_sma = 150` in `con
 python main.py live --force
 ```
 
-3. Run it with paper orders every weekday at 9:45am New York time. It only trades on the first run of each month; other days it just checks in.
+3. To run it on your own machine instead of GitHub, schedule it every weekday at 9:45am New York time. It only trades on the first run of each month; other days it just sends the status report.
 
 ```bash
 crontab -e

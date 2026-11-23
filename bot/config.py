@@ -40,6 +40,7 @@ class LiveParams:
     allow_live_trading: bool = False
     max_bar_age_days: int = 5
     fractional: bool = True
+    daily_report: bool = True
 
 
 @dataclass

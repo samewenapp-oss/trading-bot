@@ -33,3 +33,4 @@ kill_switch_file = "STOP"      # create a file named STOP in this folder to halt
 allow_live_trading = false     # must be true AND a non-paper URL set to trade real money
 max_bar_age_days = 5           # skip a symbol if its latest daily bar is older than this
 fractional = true              # fractional shares (needed for small accounts)
+daily_report = true            # Telegram status every run; chart of bot vs SPY on Fridays
