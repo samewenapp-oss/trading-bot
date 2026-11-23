@@ -54,7 +54,7 @@ def _log_trade(log_dir: Path, row: dict):
 def get_closes(client, cfg: Config, today: pd.Timestamp, notifier: Notifier) -> pd.DataFrame:
     """Completed daily closes for every symbol that has fresh, sufficient data."""
     start = (today - pd.Timedelta(days=450)).strftime("%Y-%m-%d")
-    need = max(cfg.strategy.trend_sma, cfg.strategy.momentum_lookback, cfg.strategy.vol_lookback) + 1
+    need = max(cfg.strategy.trend_sma, *cfg.strategy.momentum_lookbacks, cfg.strategy.vol_lookback) + 1
     cols, problems = {}, []
     for s in cfg.all_symbols:
         try:

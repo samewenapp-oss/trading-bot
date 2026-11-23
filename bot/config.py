@@ -6,7 +6,7 @@ from pathlib import Path
 @dataclass
 class StrategyParams:
     trend_sma: int = 200
-    momentum_lookback: int = 126
+    momentum_lookbacks: list[int] = field(default_factory=lambda: [21, 63, 126, 252])
     vol_lookback: int = 60
     top_n: int = 5
 

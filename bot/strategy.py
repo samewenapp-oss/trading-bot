@@ -3,7 +3,7 @@ so what you test is exactly what trades.
 
 Rules, applied at each month-end close:
   1. An ETF qualifies only if its close is above its trend_sma-day average.
-  2. Rank all ETFs by momentum_lookback-day return; keep qualifiers in the top_n.
+  2. Rank all ETFs by their average return over momentum_lookbacks; keep qualifiers in the top_n.
   3. Each kept ETF gets a share of a 1/top_n-per-slot budget, tilted by inverse volatility.
      Empty slots (fewer than top_n qualifiers) go to the cash ETF.
 """
@@ -16,7 +16,8 @@ from .config import StrategyParams
 def indicator_frames(closes: pd.DataFrame, p: StrategyParams) -> dict[str, pd.DataFrame]:
     return {
         "sma": closes.rolling(p.trend_sma).mean(),
-        "mom": closes / closes.shift(p.momentum_lookback) - 1,
+        # average of several lookbacks: no single "lucky" number drives the ranking
+        "mom": sum(closes / closes.shift(n) - 1 for n in p.momentum_lookbacks) / len(p.momentum_lookbacks),
         "vol": closes.pct_change(fill_method=None).rolling(p.vol_lookback).std(),
     }
 

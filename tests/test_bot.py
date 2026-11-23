@@ -15,7 +15,7 @@ SYMS = ["AAA", "BBB", "CCC", "DDD"]
 
 def small_cfg(**costs):
     return Config(symbols=SYMS, cash_symbol="CASH",
-                  strategy=StrategyParams(trend_sma=50, momentum_lookback=40, vol_lookback=20, top_n=2),
+                  strategy=StrategyParams(trend_sma=50, momentum_lookbacks=[20, 40], vol_lookback=20, top_n=2),
                   costs=CostParams(**costs))
 
 
