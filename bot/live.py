@@ -1,4 +1,4 @@
-"""One live/paper run. Schedule it every trading day ~15 minutes after the open.
+"""One live/paper run. Schedule it every trading day in the early-to-mid afternoon (New York time).
 It only trades on the first run of each new month; other days it just checks in.
 
 Safety rules:

@@ -2,9 +2,11 @@ name: trading-bot
 
 on:
   schedule:
-    # Weekdays 14:50 UTC = 9:50am New York in winter, 10:50am in summer.
-    # GitHub often starts scheduled runs late; the bot doesn't care as long as the market is open.
-    - cron: "50 14 * * 1-5"
+    # Weekdays 19:07 UTC = 2:07pm New York in winter, 3:07pm in summer.
+    # Mid-afternoon: tight spreads, calm prices, close to the backtest's "trade at the close".
+    # GitHub sometimes starts scheduled runs late, so this leaves ~1 hour of buffer before the 4pm close.
+    # (Odd minute on purpose: runs scheduled on the hour get delayed more.)
+    - cron: "7 19 * * 1-5"
   workflow_dispatch:   # "Run workflow" button, works from the GitHub phone app
     inputs:
       mode:

@@ -81,7 +81,7 @@ In the repo: **Settings > Secrets and variables > Actions > New repository secre
 **4. Test it (2 min)**
 Repo **Actions** tab > **trading-bot** > **Run workflow** > mode `dry-run`. Within a couple of minutes, Telegram should show what it would buy. Nothing gets traded.
 
-That's it. From then on it runs every weekday at about 9:50am New York time (10:50 in summer).
+That's it. From then on it runs every weekday at about 2pm New York time (3pm in summer). Mid-afternoon has tighter spreads and calmer prices than the open, and it's close to what the backtest assumed.
 
 ### What you get on your phone
 
@@ -132,7 +132,7 @@ To check how fragile it is, set `slippage_bps = 20` or `trend_sma = 150` in `con
 python main.py live --force
 ```
 
-3. To run it on your own machine instead of GitHub, schedule it every weekday at 9:45am New York time. It only trades on the first run of each month; other days it just sends the status report.
+3. To run it on your own machine instead of GitHub, schedule it every weekday at about 2pm New York time. It only trades on the first run of each month; other days it just sends the status report.
 
 ```bash
 crontab -e
@@ -140,7 +140,7 @@ crontab -e
 
 ```
 CRON_TZ=America/New_York
-45 9 * * 1-5 cd /path/to/trading-bot && .venv/bin/python main.py live --execute >> logs/cron.log 2>&1
+0 14 * * 1-5 cd /path/to/trading-bot && .venv/bin/python main.py live --execute >> logs/cron.log 2>&1
 ```
 
 ## Step 3: Real money (only if paper matches the backtest)
