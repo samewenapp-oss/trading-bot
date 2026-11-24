@@ -2,6 +2,8 @@
 
 A monthly trend-following bot for ETFs. It backtests with costs first, then trades an Alpaca **paper** account.
 
+**New here? Read [GUIDE.md](GUIDE.md) first:** what to expect, the plan, taxes, and the rules that decide whether you make money.
+
 ## The strategy
 
 On the first trading day of each month:
